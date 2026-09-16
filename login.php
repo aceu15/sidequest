@@ -8,7 +8,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
         $stmt=db()->prepare("SELECT * FROM users WHERE email=? OR username=? LIMIT 1");
         $stmt->execute([trim($_POST['login']??''),trim($_POST['login']??'')]);
         $u=$stmt->fetch();
-        if ($row && password_verify($password, $row['password'])) {
+        $password = $_POST['password'] ?? '';
+        if ($u && password_verify($password, $u['password'])) {
             $_SESSION['user_id']=$u['id']; session_regenerate_id(true); redirect('dashboard.php');
         } else $error='Incorrect login details.';
     }
