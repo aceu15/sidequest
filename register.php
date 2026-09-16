@@ -13,13 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$error && strlen($password)<6) $error = 'Password must be at least 6 characters.';
     if (!$error) {
         try {
-            $stmt = db()->prepare("INSERT INTO users (username,email,password_hash) VALUES (?,?,?)");
-            $stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT)]);
-            $_SESSION['user_id'] = (int)db()->lastInsertId();
-            flash('success','Player created. Your first quest awaits.');
-            redirect('dashboard.php');
-        } catch (PDOException $e) { $error = 'Username or email is already in use.'; }
-    }
+    $stmt = db()->prepare("INSERT INTO users (username,email,password) VALUES (?,?,?)");
+    $stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT)]);
+    $_SESSION['user_id'] = (int)db()->lastInsertId();
+    flash('success','Player created. Your first quest awaits.');
+    redirect('dashboard.php');
+} catch (PDOException $e) {
+    $error = 'Username or email is already in use.';
+}
 }
 require __DIR__ . '/includes/header.php';
 ?>
