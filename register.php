@@ -1,27 +1,55 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
+
 if (user()) redirect('dashboard.php');
+
 $page_title = 'Create Player';
 $error = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf($_POST['csrf'] ?? null)) $error = 'Invalid session token.';
+    if (!verify_csrf($_POST['csrf'] ?? null)) {
+        $error = 'Invalid session token.';
+    }
+
     $username = trim($_POST['username'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    if (!$error && (strlen($username)<3 || strlen($username)>30)) $error = 'Username must be 3–30 characters.';
-    if (!$error && !filter_var($email, FILTER_VALIDATE_EMAIL)) $error = 'Enter a valid email.';
-    if (!$error && strlen($password)<6) $error = 'Password must be at least 6 characters.';
+
+    if (!$error && (strlen($username) < 3 || strlen($username) > 30)) {
+        $error = 'Username must be 3–30 characters.';
+    }
+
+    if (!$error && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Enter a valid email.';
+    }
+
+    if (!$error && strlen($password) < 6) {
+        $error = 'Password must be at least 6 characters.';
+    }
+
     if (!$error) {
         try {
-    $stmt = db()->prepare("INSERT INTO users (username,email,password) VALUES (?,?,?)");
-    $stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT)]);
-    $_SESSION['user_id'] = (int)db()->lastInsertId();
-    flash('success','Player created. Your first quest awaits.');
-    redirect('dashboard.php');
-} catch (PDOException $e) {
-    $error = 'Username or email is already in use.';
+            $stmt = db()->prepare(
+                "INSERT INTO users (username, email, password) VALUES (?, ?, ?)"
+            );
+
+            $stmt->execute([
+                $username,
+                $email,
+                password_hash($password, PASSWORD_DEFAULT)
+            ]);
+
+            $_SESSION['user_id'] = (int) db()->lastInsertId();
+
+            flash('success', 'Player created. Your first quest awaits.');
+            redirect('dashboard.php');
+
+        } catch (PDOException $e) {
+            $error = 'Username or email is already in use.';
+        }
+    }
 }
-}
+
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="auth-wrap"><div class="auth-card"><span class="eyebrow">CREATE PLAYER</span><h1>ENTER THE QUEST.</h1><p>Build your player identity and start discovering missions.</p>
