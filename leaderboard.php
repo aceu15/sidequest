@@ -1,0 +1,11 @@
+<?php
+require_once __DIR__.'/includes/functions.php';$page_title='Hall of Fame';$pdo=db();
+$leaders=$pdo->query("SELECT u.id,u.username,u.level,u.xp,u.avatar_path,COUNT(qp.id) completed FROM users u LEFT JOIN quest_participants qp ON qp.user_id=u.id AND qp.status='completed' GROUP BY u.id ORDER BY u.xp DESC,completed DESC,u.level DESC,u.username ASC LIMIT 25")->fetchAll();
+$pool=(float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM reward_transactions WHERE transaction_type='leaderboard_allocation'")->fetchColumn();
+require __DIR__.'/includes/header.php';
+?>
+<section class="page-head"><div><span class="eyebrow">THE HALL OF FAME</span><h1>CLIMB THE<br><em>LEADERBOARD.</em></h1><p>Recognition follows meaningful participation. Complete quests, earn XP, and become the player people remember.</p></div><div class="pool"><small>CURRENT REWARD POOL</small><strong>₱<?=number_format($pool,0)?></strong><span>Calculated from the current reward ledger</span></div></section>
+<div class="podium"><?php foreach(array_slice($leaders,0,3) as $i=>$l):?><div class="podium-card rank-<?=$i+1?>"><span>#<?=$i+1?></span><?=avatar_markup($l, 'big-avatar')?><h2><?=e($l['username'])?></h2><b><?=e($l['completed'])?> QUESTS</b><small>LEVEL <?=$l['level']?> · <?=number_format($l['xp'])?> XP</small></div><?php endforeach;?></div>
+<div class="leader-list"><div class="leader-row head"><span>RANK</span><span>PLAYER</span><span>LEVEL</span><span>QUESTS</span><span>XP</span></div><?php foreach($leaders as $i=>$l):?><a class="leader-row" href="<?=base_url('profile.php?id='.$l['id'])?>"><span class="rank-num"><?=str_pad((string)($i+1),2,'0',STR_PAD_LEFT)?></span><span class="leader-player"><?=avatar_markup($l, 'avatar')?><b><?=e($l['username'])?></b></span><span>LVL <?=$l['level']?></span><strong><?=$l['completed']?></strong><span><?=number_format($l['xp'])?></span></a><?php endforeach;?></div>
+<div class="champion-note"><span class="eyebrow">MONTHLY SIDEQUEST CHAMPION</span><h2>Earn recognition. Earn the right to be remembered.</h2><p>The reward pool is an internal demo ledger. A future payment provider can be connected without changing the ranking architecture.</p></div>
+<?php require __DIR__.'/includes/footer.php'; ?>
